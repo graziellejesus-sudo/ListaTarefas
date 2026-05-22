@@ -1,14 +1,17 @@
-using Microsoft.EntityFrameworkCore;
 using ListaTarefas.Data;
+using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDistributedMemoryCache(); // Necessário para armazenar a sessão em memória
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // Tempo de expiração
-    options.Cookie.HttpOnly = true; // Segurança
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -16,30 +19,21 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<UsuarioContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString
-        ("DefaultConnection")));
-
+builder.Services.AddDbContext<UsuarioContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("PermitirTudo", policy =>
     {
-        policy.AllowAnyOrigin()  // Permite qualquer origem
+        policy.WithOrigins("http://127.0.0.1:5500", "http://localhost:5500")
               .AllowAnyHeader()  // Permite qualquer cabeçalho
-              .AllowAnyMethod(); // Permite qualquer método (GET, POST, etc.)
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
-builder.Services.AddControllers();
-
 var app = builder.Build();
-app.UseSession();
-// 2. Habilitar o Middleware CORS (deve ser antes de UseAuthorization)
-app.UseCors("PermitirTudo");
 
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -47,6 +41,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("PermitirTudo");
+
+app.UseSession();
 
 app.UseAuthorization();
 

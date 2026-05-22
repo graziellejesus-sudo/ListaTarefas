@@ -50,14 +50,13 @@ namespace ListaTarefas.Controllers
             return Created("", usuario);
         }
 
-        [HttpGet("{id}")]
-        public IActionResult ConsultarPessoaId(int id)
+        [HttpGet("logout")]
+        public IActionResult Logout()
         {
-            var pessoaDoBanco = _context.Usuarios.Find(id);
-
-            if (pessoaDoBanco == null)
-                return NotFound("Não encontrada.");
-            return Ok("Vou consultar uma pessoa.");
+            HttpContext.Session.Clear();
+            Response.Cookies.Delete("IdLogado");
+            Response.Cookies.Delete(".AspNetCore.Session");
+            return Ok("Logout realizado");
         }
 
         [HttpPost("Login")]
@@ -69,13 +68,14 @@ namespace ListaTarefas.Controllers
             if (Entrar.Count == 0)
                 return Unauthorized("Email ou senha incorreta!");
 
-            HttpContext.Session.SetString("email", dadosLogin.Email);
-            Response.Cookies.Append("Idusado", Entrar[0].Id.ToString(),
+            HttpContext.Session.SetString("IdLogado", Entrar[0].Id.ToString());
+            Response.Cookies.Append("IdLogado", Entrar[0].Id.ToString(),
              new CookieOptions
              {
                  Expires = DateTime.Now.AddMinutes(38),
                  Secure = true,
-                 HttpOnly = true
+                 HttpOnly = true,
+                 SameSite=SameSiteMode.None
 
              });
             return Ok("Login realizado com sucesso!");

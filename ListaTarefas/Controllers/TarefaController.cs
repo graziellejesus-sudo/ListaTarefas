@@ -1,7 +1,8 @@
 ﻿using ListaTarefas.Data;
 using ListaTarefas.Models;
 using Microsoft.AspNetCore.Mvc;
-namespace ListaTarefas.Controllers
+
+namespace Listratarefas.Controllers
 {
     [ApiController]
     [Route("[controller]")]
@@ -53,10 +54,10 @@ namespace ListaTarefas.Controllers
         [HttpPost("Cadastrar")]
         public IActionResult CriarTarefas(Tarefa tarefa)
         {
-            var idUsuario = HttpContext.Session.GetString("email");
+            var idUsuario = HttpContext.Session.GetString("IdLogado");
             if (idUsuario == null) return Unauthorized("não autorizado");
 
-            var sessao = Request.Cookies["Idusado"];
+            var sessao = Request.Cookies["IdLogado"];
 
             if (sessao != null)
             {
@@ -70,21 +71,30 @@ namespace ListaTarefas.Controllers
         }
         [HttpGet("tarefaUsuario/{ident}")]
         public IActionResult TarefaUsuario(int ident)
+
         {
+            var idUsuario = HttpContext.Session.GetString("IdLogado");
+            if (idUsuario == null) return Unauthorized("Faça login antes! ");
+
+            var sessao = Request.Cookies["IdLogado"];
+
             var resultado = from u in _context.Usuarios
                             join t in _context.Tarefas
                             on u.Id equals t.IdUsuario
-                            where ident == u.Id
+                            where u.Id == int.Parse(idUsuario)
                             select new
                             {
                                 Usuario = u.Nome,
                                 u.Email,
                                 Tarefas = t.Status,
-                                t.Descricao
+                                t.Descricao,t.Id
 
                             };
             return Ok(resultado.ToList());
         }
 
     }
+
 }
+
+

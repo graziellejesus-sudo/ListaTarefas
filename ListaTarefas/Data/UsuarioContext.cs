@@ -10,6 +10,8 @@ namespace ListaTarefas.Data
         public DbSet<Tarefa> Tarefas { get; set; }
 
         public UsuarioContext(DbContextOptions<UsuarioContext> options) : base(options) { }
-       
+
+      
+     
     }
 }
